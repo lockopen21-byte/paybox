@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayBox - Netzwerk-Diagnose</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { font-size: 1.8em; margin-bottom: 10px; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        .test-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            border-left: 4px solid #0078D7;
+        }
+        .test-section h2 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #000;
+        }
+        .test-item {
+            margin: 12px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-label {
+            font-weight: 500;
+        }
+        .test-status {
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        .status-loading {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .status-ok {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        .status-error {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+        .status-warning {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+        .test-detail {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 8px;
+            padding: 8px;
+            background: #fafafa;
+            border-radius: 3px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #0078D7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #005bb5;
+        }
+        .button-secondary {
+            background: #6c757d;
+        }
+        .button-secondary:hover {
+            background: #5a6268;
+        }
+        .results-summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0f7ff;
+            border-radius: 6px;
+            border: 1px solid #0078D7;
+        }
+        .results-summary h3 {
+            margin-bottom: 12px;
+        }
+        .problem-list {
+            list-style: none;
+            padding: 0;
+        }
+        .problem-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .problem-list li:before {
+            content: "❌";
+            position: absolute;
+            left: 0;
+        }
+        .solution-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 15px;
+        }
+        .solution-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #2e7d32;
+        }
+        .solution-list li:before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 PayBox Netzwerk-Diagnose</h1>
+        <p class="subtitle">Überprüft Ihre Verbindung und Download-Fähigkeit</p>
+
+        <!-- Internet Connection Test -->
+        <div class="test-section">
+            <h2>📡 Internetverbindung</h2>
+            <div class="test-item">
+                <span class="test-label">Online-Status</span>
+                <span class="test-status status-loading" id="online-status">Prüfe...</span>
+            </div>
+            <div class="test-detail" id="online-detail"></div>
+        </div>
+
+        <!-- DNS Resolution Test -->
+        <div class="test-section">
+            <h2>🌐 DNS-Auflösung</h2>
+            <div class="test-item">
+                <span class="test-label">localhost</span>
+                <span class="test-status status-loading" id="dns-status">Prüfe...</span>
+            </div>
+            <div class="test-detail" id="dns-detail"></div>
+        </div>
+
+        <!-- Server Connectivity Test -->
+        <div class="test-section">
+            <h2>🖥️ Server-Verbindung</h2>
+            <div class="test-item">
+                <span class="test-label">HTTP-Server (Port 8080)</span>
+                <span class="test-status status-loading" id="server-status">Prüfe...</span>
+            </div>
+            <div class="test-detail" id="server-detail"></div>
+        </div>
+
+        <!-- File Download Test -->
+        <div class="test-section">
+            <h2>📥 Download-Test</h2>
+            <div class="test-item">
+                <span class="test-label">PayBox Setup 1.0.0.exe</span>
+                <span class="test-status status-loading" id="download-status">Prüfe...</span>
+            </div>
+            <div class="test-detail" id="download-detail"></div>
+        </div>
+
+        <!-- Firewall/Proxy Test -->
+        <div class="test-section">
+            <h2>🔐 Firewall & Proxy</h2>
+            <div class="test-item">
+                <span class="test-label">Blockiert?</span>
+                <span class="test-status status-loading" id="firewall-status">Prüfe...</span>
+            </div>
+            <div class="test-detail" id="firewall-detail"></div>
+        </div>
+
+        <!-- Results Summary -->
+        <div class="results-summary" id="results-summary" style="display: none;">
+            <h3>📋 Diagnose-Ergebnis</h3>
+            <div id="results-content"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button onclick="location.reload()">🔄 Tests erneut ausführen</button>
+            <button class="button-secondary" onclick="downloadDiagnostics()">💾 Ergebnisse speichern</button>
+            <button class="button-secondary" onclick="window.location.href='windows-download.html'">← Zurück zum Download</button>
+        </div>
+    </div>
+
+    <script>
+        async function runDiagnostics() {
+            console.log('🔧 Starte Netzwerk-Diagnose...');
+
+            // Test 1: Online Status
+            await testOnlineStatus();
+
+            // Test 2: DNS
+            await testDNS();
+
+            // Test 3: Server
+            await testServer();
+
+            // Test 4: Download
+            await testDownload();
+
+            // Test 5: Firewall
+            await testFirewall();
+
+            // Zusammenfassung
+            generateSummary();
+        }
+
+        async function testOnlineStatus() {
+            try {
+                const online = navigator.onLine;
+                const status = document.getElementById('online-status');
+                const detail = document.getElementById('online-detail');
+
+                if (online) {
+                    status.className = 'test-status status-ok';
+                    status.textContent = '✅ Online';
+                    detail.textContent = 'Ihre Internetverbindung ist aktiv.';
+                } else {
+                    status.className = 'test-status status-error';
+                    status.textContent = '❌ Offline';
+                    detail.textContent = 'Keine Internetverbindung! Bitte überprüfen Sie Ihr Netzwerk.';
+                }
+            } catch (e) {
+                document.getElementById('online-status').className = 'test-status status-warning';
+                document.getElementById('online-status').textContent = '⚠️ Unbekannt';
+                document.getElementById('online-detail').textContent = e.message;
+            }
+        }
+
+        async function testDNS() {
+            try {
+                const status = document.getElementById('dns-status');
+                const detail = document.getElementById('dns-detail');
+
+                // Test lokale Auflösung
+                const response = await fetch('http://localhost:8080/', { 
+                    method: 'HEAD',
+                    timeout: 5000 
+                });
+
+                status.className = 'test-status status-ok';
+                status.textContent = '✅ Erreichbar';
+                detail.textContent = 'localhost wird korrekt aufgelöst.';
+            } catch (e) {
+                const status = document.getElementById('dns-status');
+                const detail = document.getElementById('dns-detail');
+                status.className = 'test-status status-error';
+                status.textContent = '❌ Fehler';
+                detail.textContent = 'localhost nicht erreichbar: ' + e.message;
+            }
+        }
+
+        async function testServer() {
+            try {
+                const response = await fetch('http://localhost:8080/', { 
+                    method: 'HEAD',
+                    timeout: 10000 
+                });
+
+                const status = document.getElementById('server-status');
+                const detail = document.getElementById('server-detail');
+
+                if (response.ok || response.status === 404) {
+                    status.className = 'test-status status-ok';
+                    status.textContent = '✅ Online';
+                    detail.textContent = `Server antwortet mit Status: ${response.status}`;
+                } else {
+                    status.className = 'test-status status-warning';
+                    status.textContent = '⚠️ Probleme';
+                    detail.textContent = `Server antwortet mit Status: ${response.status}`;
+                }
+            } catch (e) {
+                const status = document.getElementById('server-status');
+                const detail = document.getElementById('server-detail');
+                status.className = 'test-status status-error';
+                status.textContent = '❌ Offline';
+                detail.textContent = 'Server nicht erreichbar. Starten Sie den HTTP-Server neu: python -m http.server 8080';
+            }
+        }
+
+        async function testDownload() {
+            try {
+                const response = await fetch('./PayBox Setup 1.0.0.exe', {
+                    method: 'HEAD',
+                    timeout: 10000
+                });
+
+                const status = document.getElementById('download-status');
+                const detail = document.getElementById('download-detail');
+
+                if (response.ok) {
+                    status.className = 'test-status status-ok';
+                    status.textContent = '✅ Download möglich';
+                    detail.textContent = `Datei gefunden. Größe: ${response.headers.get('content-length')} Bytes`;
+                } else {
+                    status.className = 'test-status status-error';
+                    status.textContent = '❌ Nicht gefunden';
+                    detail.textContent = `HTTP ${response.status}: Datei existiert nicht.`;
+                }
+            } catch (e) {
+                const status = document.getElementById('download-status');
+                const detail = document.getElementById('download-detail');
+                status.className = 'test-status status-error';
+                status.textContent = '❌ Fehler';
+                detail.textContent = 'Download fehlgeschlagen: ' + e.message;
+            }
+        }
+
+        async function testFirewall() {
+            try {
+                const status = document.getElementById('firewall-status');
+                const detail = document.getElementById('firewall-detail');
+
+                // Wenn bis hier alles funktioniert, ist Firewall OK
+                status.className = 'test-status status-ok';
+                status.textContent = '✅ Nicht blockiert';
+                detail.textContent = 'Ihre Firewall blockiert den Download nicht.';
+            } catch (e) {
+                const status = document.getElementById('firewall-status');
+                const detail = document.getElementById('firewall-detail');
+                status.className = 'test-status status-warning';
+                status.textContent = '⚠️ Möglich';
+                detail.textContent = 'Möglicherweise durch Firewall blockiert: ' + e.message;
+            }
+        }
+
+        function generateSummary() {
+            const summary = document.getElementById('results-summary');
+            const content = document.getElementById('results-content');
+
+            const allTests = [
+                document.getElementById('online-status').className,
+                document.getElementById('dns-status').className,
+                document.getElementById('server-status').className,
+                document.getElementById('download-status').className,
+                document.getElementById('firewall-status').className
+            ];
+
+            const hasErrors = allTests.some(t => t.includes('status-error'));
+            const hasWarnings = allTests.some(t => t.includes('status-warning'));
+
+            let html = '';
+
+            if (!hasErrors && !hasWarnings) {
+                html = '<p style="color: #2e7d32; font-weight: bold;">✅ Alles funktioniert! Download sollte möglich sein.</p>';
+            } else if (hasErrors) {
+                html = '<h4>🔴 Probleme gefunden:</h4>';
+                html += '<ul class="problem-list">';
+                if (document.getElementById('online-status').className.includes('error')) {
+                    html += '<li>Keine Internetverbindung</li>';
+                }
+                if (document.getElementById('dns-status').className.includes('error')) {
+                    html += '<li>DNS-Auflösung fehlgeschlagen</li>';
+                }
+                if (document.getElementById('server-status').className.includes('error')) {
+                    html += '<li>HTTP-Server nicht erreichbar</li>';
+                }
+                if (document.getElementById('download-status').className.includes('error')) {
+                    html += '<li>Datei nicht erreichbar</li>';
+                }
+                html += '</ul>';
+
+                html += '<h4>💡 Empfohlene Lösungen:</h4>';
+                html += '<ul class="solution-list">';
+                html += '<li>Starten Sie den HTTP-Server neu: <code>python -m http.server 8080</code></li>';
+                html += '<li>Überprüfen Sie Ihre Firewall-Einstellungen</li>';
+                html += '<li>Versuchen Sie einen anderen Browser</li>';
+                html += '<li>Laden Sie die Seite neu (Ctrl+Shift+R)</li>';
+                html += '</ul>';
+            } else {
+                html = '<p style="color: #f57f17;">⚠️ Einige Tests zeigen Warnungen. Versuchen Sie trotzdem, die Datei herunterzuladen.</p>';
+            }
+
+            content.innerHTML = html;
+            summary.style.display = 'block';
+        }
+
+        function downloadDiagnostics() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                online: navigator.onLine,
+                tests: {
+                    onlineStatus: document.getElementById('online-status').textContent,
+                    dnsStatus: document.getElementById('dns-status').textContent,
+                    serverStatus: document.getElementById('server-status').textContent,
+                    downloadStatus: document.getElementById('download-status').textContent,
+                    firewallStatus: document.getElementById('firewall-status').textContent
+                }
+            };
+
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `paybox-diagnostics-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Starte Tests beim Laden
+        runDiagnostics();
+    </script>
+</body>
+</html>
